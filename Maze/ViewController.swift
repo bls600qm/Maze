@@ -35,6 +35,7 @@ class ViewController: UIViewController {
     var startView: UIView!
     var goalView: UIView!
     
+     var wallrectArray = [CGRect]() //壁の配列
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,14 +56,18 @@ class ViewController: UIViewController {
                     let wallView = createView(x: x, y: y, width: cellWidth, height: cellHeight, offsetX: cellOffsetX, offsetY: cellOffsetY)
                     wallView.backgroundColor = UIColor.black
                     view.addSubview(wallView)
+                    
+                    wallrectArray.append(wallView.frame)
                 case 2:
                     startView = createView(x: x, y: y, width: cellWidth, height: cellHeight, offsetX: cellOffsetX, offsetY: cellOffsetY)
                     startView.backgroundColor = UIColor.green
                     view.addSubview(startView)
+                    
                 case 3:
                     goalView = createView(x: x, y: y, width: cellWidth, height: cellHeight, offsetX: cellOffsetX, offsetY: cellOffsetY)
                     goalView.backgroundColor = UIColor.red
                     view.addSubview(goalView)
+                
                 default:
                     break
                 }
@@ -122,7 +127,19 @@ class ViewController: UIViewController {
                 self.speedY = 0
                 posX = self.screenSize.height - (self.playerView.frame.height / 2)
             }
-           
+            
+            for wallRect in self.wallrectArray {
+                if (wallRect.intersects(self.playerView.frame)){ //当たり判定
+                    print("GameOver")
+                    return
+                }
+            }
+            
+            if (self.goalView.frame.intersects(self.playerView.frame)) {//当たり判定
+                print("Clear")
+                return
+            }
+            
             //加速度開始
             self.playerView.center = CGPoint(x: posX, y: posY)
         }
