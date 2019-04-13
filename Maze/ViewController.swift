@@ -7,9 +7,14 @@
 //
 
 import UIKit
+import CoreMotion
 
 class ViewController: UIViewController {
 
+    var playerView: UIView! //playerを表す
+    var playerMotionManager: CMMotionManager! //iPhoneの動きを感知するやつ
+    var speedX: Double = 0.0 //playerの動きの速さ
+    var speedY: Double = 0.0
     //画面サイズの取得
     let screenSize = UIScreen.main.bounds.size
     
@@ -64,6 +69,17 @@ class ViewController: UIViewController {
             }
         }
         
+        playerView = UIView(frame: CGRect(x: 0, y: 0, width: cellWidth / 6, height: cellHeight / 6)) //playerの幅と高さはマスの/6
+        playerView.center = startView.center
+        playerView.backgroundColor = UIColor.gray
+        self.view.addSubview(playerView)
+        
+        playerMotionManager = CMMotionManager() //playerMotionManagerを生成
+        playerMotionManager.accelerometerUpdateInterval = 0.02 //加速度を0.02秒ごとに取得
+        
+        self.startAccelerometer() //加速度を感知した時
+        
+        
     }
     
     //迷路の１マスとなるUIViewを作るメソッド
@@ -78,6 +94,39 @@ class ViewController: UIViewController {
         return view
     }
 
+    func startAccelerometer() {
+        //加速度を取得
+        let handler: CMAccelerometerHandler = {(CMAccelerometerData: CMAccelerometerData?, error: Error?) ->
+            Void in
+            self.speedX += CMAccelerometerData!.acceleration.x
+            self.speedY += CMAccelerometerData!.acceleration.y
+            
+            //playerの中心位置
+            var posX = self.playerView.center.x + (CGFloat(self.speedX) / 3)
+            var posY = self.playerView.center.y - (CGFloat(self.speedY) / 3)
+            
+            //playerがはみだしそうだったら
+            if posX <= self.playerView.frame.width / 2 {
+                self.speedX = 0
+                posX = self.playerView.frame.width / 2
+            }
+            if posY <= self.playerView.frame.height / 2 {
+                self.speedY = 0
+                posY = self.playerView.frame.height / 2
+            }
+            if posX >= self.screenSize.width - (self.playerView.frame.width / 2) {
+                self.speedX = 0
+                posX = self.screenSize.width - (self.playerView.frame.width / 2)
+            }
+            if posY >= self.screenSize.height - (self.playerView.frame.height / 2) {
+                self.speedY = 0
+                posX = self.screenSize.height - (self.playerView.frame.height / 2)
+            }
+           
+            //加速度開始
+            self.playerView.center = CGPoint(x: posX, y: posY)
+        }
+    }
 
 
 }
